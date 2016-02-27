@@ -3,8 +3,12 @@ import urllib
 from urlparse import urljoin
 import gzip
 import json
-from os.path import join
+from os import makedirs
+from os.path import join, isdir, exists
 import time
+import numpy as np
+from random import randint
+from hashlib import sha1
 
 import py.test
 
@@ -12,6 +16,7 @@ AZLYRICS_URL = 'http://www.azlyrics.com/t/taylorswift.html'
 METROLYRICS_URL = 'http://www.metrolyrics.com/taylor-swift-lyrics.html'
 
 EX_URL = 'http://www.azlyrics.com/lyrics/taylorswift/aplaceinthisworld.html'
+CACHE_DIR = 'html/'
 
 class LyricsWalker(object):
 	"""
@@ -24,20 +29,26 @@ class LyricsWalker(object):
 		Grabs lyrics from URL and return plain text lyrics.
 		Lyrics are located at /html/body/div[3]/div/div[2]/div[6]
 		"""
-		soup, html = cls.get_soup_from_url(url, html=True)
+		if cls.load_local(url):
+			soup = bs4.BeautifulSoup(cls.load_local(url), "html.parser")
+		else:
+			soup, html = cls.get_soup_from_url(url, html=True)
+			cls.store_local(url, html)
 
 		try:
 			album_info = soup.find('div', {'class': 'album-panel'})
 			if album_info:
 				album_text = album_info.text.strip()
-				album = album_text.split('"')[1]
-				year = album_text.split('(')[1][:-1]
+				album = album_text.split('"')[1].encode('ascii', 'ignore')
+				year = album_text.split('(')[1][:-1].encode('ascii', 'ignore')
 			else:
 				album, year = None, None
-			title = soup.title.text.split(' - ')[-1]
-			lyrics = soup.html.body.findAll('div')[10].div.findAll('div')[2].findAll('div')[7].text.strip()
+			title = soup.title.text.split(' - ')[-1].encode('ascii', 'ignore')
+			lyrics = cls.get_lyrics(soup)
 		except:
 			py.test.set_trace()
+			print 'Error parsing: %s' % url
+			return None
 
 		entry_info = {
 			'lyrics': lyrics,
@@ -47,23 +58,71 @@ class LyricsWalker(object):
 		}
 
 		title_str = title.replace(' ', '_')
-		f = open('data/%s.txt' % title_str, 'wb')
-		f.write(html)
+		if album is not None:
+			output_file_dir = 'data/%s/' % album
+		else:
+			output_file_dir = 'data/noalbum/'
+
+		if not isdir(output_file_dir):
+			makedirs(output_file_dir)
+
+		output_filename = join(output_file_dir, '%s.json' % title_str)
+		f = open(output_filename, 'wb')
+		json.dump(entry_info, f, sort_keys=1, indent=2)
 		f.close()
 
 		print 'Parsed %s' % title
 		return entry_info
 
 	@classmethod
+	def get_lyrics(cls, soup):
+		"""
+		Method for extracting lyrics from BeautifulSoup. Relies on the fact that
+		lyrics are very long instead of relying on consistent formatting from AZ Lyrics.
+		"""
+		all_div = soup.findAll('div')
+		all_text = [i.text for i in all_div]
+		lyrics_idx = np.argmax(map(len, all_text))
+		# py.test.set_trace()
+		return all_text[lyrics_idx].strip().encode('ascii', 'ignore')
+
+	@classmethod
 	def get_soup_from_url(cls, url, html=False):
 		urlobject = urllib.urlopen(url)
-		time.sleep(5)
-		print 'Just read %s' % url
+		time.sleep(randint(5, 30))
+		print 'Read %s' % url
 		full_html = urlobject.read()
 
 		if html:
-			return bs4.BeautifulSoup(full_html), full_html
-		return bs4.BeautifulSoup(full_html)
+			return bs4.BeautifulSoup(full_html, "html.parser"), full_html
+		return bs4.BeautifulSoup(full_html, "html.parser")
+
+	@classmethod
+	def url_to_filename(cls, url):
+		"""
+		Make a URL into a file name, using SHA1 hashes.
+		"""
+		hash_file = sha1(url).hexdigest() + '.html'
+		return join(CACHE_DIR, hash_file)
+
+	@classmethod
+	def store_local(cls, url, content):
+		if not isdir(CACHE_DIR):
+			makedirs(CACHE_DIR)
+
+		local_path = cls.url_to_filename(url)
+		with open(local_path, 'wb') as f:
+			f.write(content)
+			print 'Stored locally %s' % url
+
+	@classmethod
+	def load_local(cls, url):
+		local_path = cls.url_to_filename(url)
+		if not exists(local_path):
+			return None
+		with open(local_path, 'rb') as f:
+			print 'Loaded locally: %s' % url
+			return f.read()
 
 	@classmethod
 	def walk_homepage(cls, home_url, output_dir=''):
@@ -76,8 +135,10 @@ class LyricsWalker(object):
 		with open(filename, 'wb') as f:
 			for song in song_lst:
 				f.write(',' if had_previous else '[')
+				had_previous = True
 				song_url = urljoin(home_url, song.get('href'))
 				json.dump(cls.get_song_info(song_url), f)
+
 			f.write(']')
 		print "Wrote all songs to json!"
 
