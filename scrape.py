@@ -1,3 +1,11 @@
+"""
+AZLyrics Scraper
+Irene Chen (github/irenetrampoline)
+Feb 27, 2016
+
+Created primarily to scrape Taylor Swift lyrics off of AZ Lyrics.
+"""
+
 import bs4
 import urllib
 from urlparse import urljoin
@@ -10,12 +18,7 @@ import numpy as np
 from random import randint
 from hashlib import sha1
 
-import py.test
-
 AZLYRICS_URL = 'http://www.azlyrics.com/t/taylorswift.html'
-METROLYRICS_URL = 'http://www.metrolyrics.com/taylor-swift-lyrics.html'
-
-EX_URL = 'http://www.azlyrics.com/lyrics/taylorswift/aplaceinthisworld.html'
 CACHE_DIR = 'html/'
 
 class LyricsWalker(object):
@@ -24,7 +27,7 @@ class LyricsWalker(object):
 	base case with varying scraping functions.
 	"""
 	@classmethod
-	def get_song_info(cls, url=EX_URL):
+	def get_song_info(cls, url):
 		"""
 		Grabs lyrics from URL and return plain text lyrics.
 		Lyrics are located at /html/body/div[3]/div/div[2]/div[6]
@@ -59,7 +62,7 @@ class LyricsWalker(object):
 
 		title_str = title.replace(' ', '_')
 		if album is not None:
-			output_file_dir = 'data/%s/' % album
+			output_file_dir = 'data/%s_%s/' % (album, year)
 		else:
 			output_file_dir = 'data/noalbum/'
 
