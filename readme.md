@@ -8,7 +8,7 @@ There are two parts designed for varying levels of familiarity with Python:
 
  * `analyze.py`: for newer students to find most common unigrams (words) and bigrams (2-word phrases) that Taylor Swift uses
 
- ![Test test](top_words.png | width=80)
+ ![Test test](top_words.png =100x60)
 
  * `songbird.py`: for students more familiar with Python to generate a random song using a Markov Model. One sample output could be:
 
