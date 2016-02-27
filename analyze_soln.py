@@ -61,7 +61,7 @@ def make_txt_alllyrics():
             f.write(song['lyrics'])
 
 def plot_bar_chart(values, labels):
-    fig, ax = plt.subplots()
+    fig, ax = plt.subplots(figsize=(8,6))
     N = len(values)
     ind = np.arange(N)
     width = 0.75
