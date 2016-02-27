@@ -46,15 +46,18 @@ with open('all_tswift_lyrics.txt', 'rb') as f:
 	lyrics = f.read()
 ```
 
-# Unigrams and Bigrams
+# Exercise 1: Unigrams and Bigrams
 Execises can be found in `analyze.py` with exercises marked as `TODO`. As with all code, there are design considerations you must make: How much do you care about punctuation? Upper case letters? How do you feel about [stop words](https://en.wikipedia.org/wiki/Stop_words)?
 
 Once you have completed the listed exercises, feel free to explore! Here are some ideas for further analysis:
- * Which words has she stopped using over time (from 2006 to 2014)?
+ * How has the length of songs changed over time (from 2006 to 2014)?
  * Which words and phrases frequently appear together in the same song?
+ * Can we bring in more data (like [bpm](https://www.cs.ubc.ca/~Davet/music/artist/T/T60.html) or [chart positions](https://en.wikipedia.org/wiki/Taylor_Swift_discography)) to do more analysis?
 
-# Markov Model
-As before, exercises can be found in `songbird.py` with exercises marked `TODO`. Here I would urge students to get a working product first and then tinker with things like punctuation and capitalization.
+# Exercise 2: Markov Models
+Markov Models are a statistical framework that leverages randomness and memoryless-ness. That is, the next word depends on the word before it and nothing else. Transitions are learned from an original corpus text (here defined as Taylor Swift's lyrics).
+
+As before, exercises can be found in `songbird.py` with exercises marked `TODO`. I would urge students to get a working product first and then tinker with things like punctuation and capitalization.
 
 When completed, the code would run as follows
 

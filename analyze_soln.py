@@ -13,8 +13,6 @@ import py.test
 from collections import Counter
 from matplotlib import pyplot as plt
 
-VOCAB = Counter(['test'])
-
 def create_word_occurence_dict(s):
     """
     TODO: Create a data structure to capture word occurrences and counts
@@ -28,8 +26,6 @@ def create_word_occurence_dict(s):
     s = s.lower()
     s = s.split()
     counter = Counter(s)
-    global VOCAB
-    VOCAB = counter + VOCAB
     return counter
 
 def top_songs_with_word(word, lyrics_json, n=5):
@@ -38,13 +34,19 @@ def top_songs_with_word(word, lyrics_json, n=5):
     Input: word (str), lyrics_json (including word_counts dict), optional N
     Output: list of song titles and number of occurences
     """
+    top_songs_word_lst = list()
     top_songs = [(i['title'], i['word_counts'].get(word, 0)) for i in songs]
     for i,j in sorted(top_songs, reverse=True, key=operator.itemgetter(1))[:n]:
-        print i, j
+        top_songs_word_lst.append((i, j))
+    return top_songs_word_lst
+
+def ascii_encoder(data):
+    ascii_encode = lambda x: x.encode('ascii') if x is not None else None
+    return dict(map(ascii_encode, pair) for pair in data.items())
 
 def get_lyrics_json():
     with open('az_lyrics.json', 'rb') as f:
-        return json.load(f)
+        return json.load(f, object_hook=ascii_encoder)
 
 def get_stopwords():
     with open('stopwords.txt', 'rb') as f:
@@ -58,6 +60,30 @@ def make_txt_alllyrics():
         for song in songs:
             f.write(song['lyrics'])
 
+def plot_bar_chart(values, labels):
+    fig, ax = plt.subplots()
+    N = len(values)
+    ind = np.arange(N)
+    width = 0.75
+
+    ax.bar(ind, values, width, color='#FFB7AA', edgecolor='none')
+    ax.set_xticks(ind + width)
+    ax.set_xticklabels(labels)
+
+    # make plot prettier
+    ax.spines["top"].set_visible(False)
+    ax.spines["bottom"].set_visible(False)
+    ax.spines["right"].set_visible(False)
+    ax.spines["left"].set_visible(False)
+    plt.tick_params(axis="both", which="both", bottom="off", top="off",
+                labelbottom="on", left="off", right="off", labelleft="on")
+
+    plt.xticks(rotation=35, ha='right')
+    plt.title('The 20 Most Common Taylor Swift Words')
+    plt.xlabel('Word (excl stop words)')
+    plt.ylabel('Uses per song')
+    plt.savefig('top_words.png', bbox_inches='tight')
+
 if __name__ == '__main__':
     songs = get_lyrics_json()
     stopwords = get_stopwords()
@@ -65,35 +91,38 @@ if __name__ == '__main__':
     for song in songs:
         song['word_counts'] = create_word_occurence_dict(song['lyrics'])
 
-    # vocab =
-    # which song has "love" in it the most?
-    # top_songs_with_word('hate', songs)
+    # Which song has "love" in it the most?
+    print 'Top 5 songs with "love" in them'
+    print top_songs_with_word('love', songs)
 
-    for i in VOCAB.keys():
+    # What are the top 20 words used by TSwift?
+    vocab = Counter()
+    for song in songs:
+        vocab += song['word_counts']
+
+    for i in vocab.keys():
         if i in stopwords:
-            del VOCAB[i]
+            del vocab[i]
 
+    # Graph top 20 words used by TSwift
+    words, counts = zip(*vocab.most_common(20))
+    plot_bar_chart(map(lambda x: float(x) / len(songs), counts), words)
+    print 'Top 20 words graph in top_words.png'
+
+    # Which words has she started/stopped using between 2006 and 2014?
     # take top thousand, group by album year (total and num songs), divide and find change
-
-    top_thousand, _ = zip(*VOCAB.most_common(1000))
+    top_thousand, _ = zip(*vocab.most_common(1000))
     album_info = dict()
 
     for song in songs:
         year = song['year']
         album = song['album']
-        # {'num_songs': 10, 'vocab': {'i': 1000, 'penny': 2}}
+        # example data: {'num_songs': 10, 'vocab': {'i': 1000, 'penny': 2}}
         if year is not None and album is not None:
             album_year_info = album_info.get(year, dict())
 
             num_songs = album_year_info.get('num_songs', 0)
             album_year_info['num_songs'] = num_songs + 1
-
-            # # albums = album_year_info.get('albums', dict())
-
-            # try:
-            #     album_year_info['albums'] = albums.append(album)
-            # except:
-            #     py.test.set_trace()
 
             for word in top_thousand:
                 year_vocab = album_year_info.get('vocab', dict())
@@ -104,8 +133,6 @@ if __name__ == '__main__':
                 album_year_info['vocab'] = year_vocab
 
             album_info[year] = album_year_info
-
-    # py.test.set_trace()
     # now divide to get averages
     for year in album_info.keys():
         num_songs = album_info[year]['num_songs']
@@ -116,6 +143,7 @@ if __name__ == '__main__':
     vocab2014 = album_info['2014']['vocab']
 
     diff = {key: vocab2014[key] - vocab2006.get(key, 0) for key in vocab2014.keys()}
+    print 'Top 5 words with largest differences in use from 2006 to 2014'
     print sorted(diff.items(), reverse=True, key=operator.itemgetter(1))[:5]
     print sorted(diff.items(), reverse=True, key=operator.itemgetter(1))[-5:]
     # differences
