@@ -93,7 +93,9 @@ if __name__ == '__main__':
 
     # Which song has "love" in it the most?
     print 'Top 5 songs with "love" in them'
-    print top_songs_with_word('love', songs)
+    for i,j in top_songs_with_word('love', songs):
+        print i, j
+    print
 
     # What are the top 20 words used by TSwift?
     vocab = Counter()
@@ -108,6 +110,7 @@ if __name__ == '__main__':
     words, counts = zip(*vocab.most_common(20))
     plot_bar_chart(map(lambda x: float(x) / len(songs), counts), words)
     print 'Top 20 words graph in top_words.png'
+    print
 
     # Which words has she started/stopped using between 2006 and 2014?
     # take top thousand, group by album year (total and num songs), divide and find change
@@ -143,8 +146,12 @@ if __name__ == '__main__':
     vocab2014 = album_info['2014']['vocab']
 
     diff = {key: vocab2014[key] - vocab2006.get(key, 0) for key in vocab2014.keys()}
-    print 'Top 5 words with largest differences in use from 2006 to 2014'
-    print sorted(diff.items(), reverse=True, key=operator.itemgetter(1))[:5]
-    print sorted(diff.items(), reverse=True, key=operator.itemgetter(1))[-5:]
+    print 'Top 5 words grown in use from 2006 to 2014'
+    for i,j in sorted(diff.items(), reverse=True, key=operator.itemgetter(1))[:5]:
+        print i, j
+    print
+    print 'Top 5 words decrease in use from 2006 to 2014'
+    for i,j in sorted(diff.items(), reverse=True, key=operator.itemgetter(1))[-5:]:
+        print i,j
     # differences
     # py.test.set_trace()
