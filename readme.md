@@ -1,16 +1,27 @@
 # Analyze Taylor Swift lyrics using Python
-By Irene Chen
+By Irene Chen, originally designed for a [WECode 2016](http://www.wecodeharvard.com/) workshop
 
 # Intro
 Taylor Swift is renowned for her narrative songs. Here we will analyze what makes a Taylor Swift song sound like her songwriting.
 
-This project was originally designed for a [WECode 2016](http://www.wecodeharvard.com/) Workshop. There are two parts designed for varying levels of familiarity with Python:
+There are two parts designed for varying levels of familiarity with Python:
 
  * `analyze.py`: for newer students to find most common unigrams (words) and bigrams (2-word phrases) that Taylor Swift uses
- * `songbird.py`: for students more familiar with Python to generate a random song using a Markov Model
+ * `songbird.py`: for students more familiar with Python to generate a random song using a Markov Model. One sample output could be:
+
+```
+I'll drive on me is the news.
+I'd tell the crowds.
+Headlights pass by morning light on you to walk away
+like they mean, I know you,
+I paced back on me
+From the water
+That's when you
+Remember when you were right to get out
+```
 
 # Data
-Taylor Swift lyrics are scraped from (AZ Lyrics)[http://www.azlyrics.com/] using `scrape.py`.
+Taylor Swift lyrics are scraped from [AZ Lyrics](http://www.azlyrics.com/) using `scrape.py`.
 
 Full song data is contained in 'az_lyrics.json' and includes the following fields:
  * `title`: song title

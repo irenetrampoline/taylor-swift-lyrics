@@ -25,7 +25,8 @@ class Songbird:
 
         Removing punctuation is optional but will make everything much easier.
         """
-        raise NotImplementedError
+        tokens = re.findall(r"[\w']+|[.,!?;]", self.corpus)
+        return tokens
 
     def get_bigrams(self):
         """
@@ -45,7 +46,18 @@ class Songbird:
             'happy': ['cat.'']
         }
         """
-        raise NotImplementedError
+        bigrams = {}
+        for i in xrange(len(self.tokens) - 1):
+            try:
+                prefix = self.tokens[i]
+                suffix = self.tokens[i + 1]
+                if prefix not in bigrams:
+                    bigrams[prefix] = []
+                bigrams[prefix].append(suffix)
+            except:
+                py.test.set_trace()
+        self.stop = suffix
+        return bigrams
 
     def generate(self, size=100):
         """
@@ -62,7 +74,30 @@ class Songbird:
         3) [optional] Before you publish your song, do you want to clean it up?
         Captialize letters, add line breaks, up to you!
         """
-        raise NotImplementedError
+        text = []
+        startwords = [x for x in self.bigrams.keys() if x[0].isupper()]
+        if startwords:
+            prefix = choice(startwords) #random start choice
+        else:
+            prefix = choice(self.bigrams.keys())
+        text.append(prefix)
+
+        for i in xrange(size - 1):
+            if prefix == self.stop:
+                #last word has no suffix!
+                if startwords:
+                    prefix = choice(startwords)
+                else:
+                    prefix = choice(self.bigrams.keys())
+
+            suffix = choice(self.bigrams[prefix])
+            # random choice. theoretically if we hash duplicates
+            # then more common words show up more.
+            text.append(suffix)
+            prefix = suffix
+
+        string = self.format_string(text)
+        return string
 
     @staticmethod
     def format_string(text):
@@ -72,7 +107,13 @@ class Songbird:
         Capitalize sentence beginnings.
         Remove space before punctuation.
         """
-        return text
+        string = " ".join(text)
+        punct = ["?", "!", ".", ",", ";"] #newlines
+
+        for p in punct:
+            string = string.replace(" " + p, p)
+
+        return string
 
 if __name__ == '__main__':
     tswift_bird = Songbird('all_tswift_lyrics.txt')
