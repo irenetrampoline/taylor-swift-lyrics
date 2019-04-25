@@ -1,6 +1,8 @@
 # Analyze Taylor Swift lyrics using Python
 By Irene Chen, originally designed for a [WECode 2016](http://www.wecodeharvard.com/) workshop
 
+**Update (04/25/19)**: For fans looking for updated lyrics data through *Reputation*, check out this [Kaggle dataset](https://www.kaggle.com/PromptCloudHQ/taylor-swift-song-lyrics-from-all-the-albums).
+
 # Intro
 Taylor Swift is renowned for her narrative songs. Here we will analyze what makes a Taylor Swift song sound like her songwriting.
 
